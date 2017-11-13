@@ -9,7 +9,7 @@ App::uses('Component', 'Controller');
  */
 class InstagramfeedComponent extends Component
 {
-    public $endpoint = 'https://www.instagram.com/%s/media/';
+    public $endpoint = 'https://www.instagram.com/%s/';
     public $format = 'json';
     public $errors = array();
 
@@ -45,10 +45,10 @@ class InstagramfeedComponent extends Component
 
         // TODO - put following line into the conditional clause if possible.
         $_returned = json_decode($returned, true);
-        if (count($_returned['items']) > $limit) {
-            $status = $_returned['status'];
-            $more_available = $_returned['more_available'];
-            $_returned = array_chunk($_returned['items'], $limit);
+        if (count($_returned['user']['media']['nodes']) > $limit) {
+            $status = true;
+            $more_available = $_returned['user']['page_info']['has_next_page'];
+            $_returned = array_chunk($_returned['user']['media']['nodes'], $limit);
             $returned = json_encode(array('items' => $_returned[0], 'more_available' => $more_available, 'status' => $status));
         }
         unset($_returned);
@@ -84,8 +84,9 @@ class InstagramfeedComponent extends Component
      */
     public function request(string $endpoint)
     {
-        $ch = curl_init($endpoint);
+        $ch = curl_init();
         curl_setopt_array($ch, array(
+        	CURLOPT_URL => $endpoint . '?__a=1',
             CURLOPT_RETURNTRANSFER => 1,
         ));
 
